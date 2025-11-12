@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/images/Prompt2Draw-w.png">
+    <title>一语成图 (Prompt2Draw)</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <div class="header">
+                <div class="header-left">
+                    <h1>
+                        <img src="assets/images/Prompt2Draw-w.png" alt="icon" style="height: 32px; width: 32px;">
+                        一语成图 (Prompt2Draw)
+                    </h1>
+                </div>
+                <div class="header-actions">
+                    <div class="api-status" id="apiStatus">
+                        <span class="status-dot"></span>
+                        <span>未配置</span>
+                    </div>
+                    <button class="settings-btn" onclick="testDrawIO()" title="测试DrawIO">
+                        🧪 测试
+                    </button>
+                    <button class="settings-btn" onclick="uiManager.openSettings()">
+                        ⚙️ 设置
+                    </button>
+                     <button class="theme-toggle-btn" id="themeToggleBtn" onclick="uiManager.toggleTheme()" title="切换主题">☀️</button>
+                </div>
+            </div>
+            <div class="drawio-container">
+                <div id="drawioPlaceholder" class="drawio-placeholder">
+                    请在右侧输入你的需求，要做什么，<br>得到结果后点击加载即可展示。
+                </div>
+                <iframe id="drawioFrame" src="https://embed.diagrams.net/?embed=1&proto=json&libraries=1&noSaveBtn=1&saveAndExit=0"></iframe>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="chat-card">
+                <div class="chat-header">
+                    <h2>💬 AI 成图助手</h2>
+                    <div class="chat-header-actions" style="display: flex; gap: 8px;">
+                        <button class="help-btn" id="newChatBtn" onclick="uiManager.newChat()" title="新建对话">➕</button>
+                        <button class="help-btn" onclick="uiManager.openTips()" title="查看帮助">💡</button>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        <div class="message-content">
+                            👋 你好！我是你的AI助手。描述你想要创建的流程图，我会帮你生成！
+                            <br><br>
+                            <strong>📌 使用步骤：</strong>
+                            <br>1. 点击右上角 ⚙️ 配置API密钥
+                            <br>2. 描述你想要的流程图内容
+                            <br>3. AI生成后将自动加载到左侧
+                            <br>4. 或点击 📋 复制XML（手动导入）
+                            <br><br>
+                            <small>💡 提示：点击我上方的 💡 按钮可查看更多帮助和示例模板！</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <div class="form-group" style="margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px solid #f0f0f0;">
+                        <div class="switch-group">
+                            <div>
+                                <label style="margin-bottom: 0; font-size: 14px;">携带历史对话</label>
+                                <small style="margin-top: 0px; font-size: 12px; line-height: 1.3;">关闭后可节省Tokens</small>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="historyToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-wrapper">
+                        <textarea
+                            id="chatInput"
+                            class="chat-input"
+                            placeholder="描述你想要的流程图内容..."
+                            rows="1"
+                        ></textarea>
+                        <button class="send-btn" id="sendBtn" onclick="uiManager.handleSendMessage()">
+                            发送
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="handleFileImport(event)">
+
+    <!-- 设置模态框 -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>⚙️ API配置</h3>
+                <button class="modal-close" onclick="uiManager.closeSettings()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>API 服务商</label>
+                    <select id="providerSelect" onchange="uiManager.populateProviderUI(true)">
+                        <option value="siliconflow">硅基流动 (Siliconflow)</option>
+                        <option value="openrouter">OpenRouter</option>
+                        <option value="kimi">Kimi (Moonshot)</option>
+                        <option value="zhipu">智谱 GLM (Zhipu)</option>
+                        <option value="minimax">MiniMax</option>
+                        <option value="modelscope">魔搭 (ModelScope)</option>
+                        <option value="custom">自定义</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>API Key *</label>
+                    <input type="password" id="apiKeyInput" placeholder="请输入所选服务商的 API Key">
+                    <small>请确保 API Key 与上方选择的服务商匹配</small>
+                </div>
+
+                <div class="form-group">
+                    <label>API 地址</label>
+                    <input type="text" id="apiUrlInput" value="https://api.siliconflow.cn/v1/chat/completions" placeholder="API地址">
+                    <small>选择服务商可自动填充，"自定义"时可手动修改</small>
+                </div>
+
+                <div class="form-group">
+                    <label>模型选择</label>
+                    <select id="modelSelect">
+                    </select>
+                    <small>选择适合的AI模型生成流程图</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="switch-group">
+                        <div>
+                            <label style="margin-bottom: 0;">流式输出</label>
+                            <small style="margin-top: 4px;">实时显示生成内容</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="streamToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="importSettings()" style="margin-right: auto;">导入配置</button>
+                <button class="btn btn-secondary" onclick="exportSettings()">导出配置</button>
+                <button class="btn btn-secondary" onclick="uiManager.closeSettings()">取消</button>
+                <button class="btn btn-primary" onclick="saveSettings()">保存配置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帮助模态框 -->
+    <div class="modal-overlay" id="tipsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>💡 使用说明</h3>
+                <button class="modal-close" onclick="uiManager.closeTips()">×</button>
+            </div>
+            <div class="modal-body" style="padding-top: 16px;">
+                <ol>
+                    <li>点击右上角 ⚙️ 设置配置API</li>
+                    <li>输入流程图描述，AI将生成XML</li>
+                    <li>AI生成后将**自动加载**到左侧编辑器</li>
+                    <li>如自动加载失败，可点击"📋 复制XML"手动导入</li>
+                </ol>
+                <strong>✨ 示例模板</strong>
+                <div class="example-prompts">
+                    <span class="example-prompt" onclick="uiManager.fillExample('创建一个电商订单处理流程图，包括下单、支付、发货、收货等环节')">📦 订单流程</span>
+                    <span class="example-prompt" onclick="uiManager.fillExample('生成一个用户登录验证流程图')">🔐 登录流程</span>
+                    <span class="example-prompt" onclick="uiManager.fillExample('画一个请假审批流程')">📝 审批流程</span>
+                    <span class="example-prompt" onclick="uiManager.fillExample('设计一个退款处理流程')">💰 退款流程</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: center;">
+                 <button class="btn btn-primary" id="tipsCloseBtn" onclick="uiManager.closeTips()">我明白了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript模块 -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/drawio-generator.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/core.js"></script>
+
+    <!-- 应用初始化脚本 -->
+    <script>
+        // 全局变量
+        let tipsTimeout;
+        let countdownInterval;
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        // 初始化应用
+        function initializeApp() {
+            console.log('🚀 AIPrompt2Draw 开始初始化...');
+
+            // 初始化UI
+            uiManager.initializeTheme();
+            uiManager.updateApiStatus();
+
+            // 初始化历史记录开关
+            const config = configManager.getConfig();
+            document.getElementById('historyToggle').checked = config.sendHistory;
+
+            // 首次访问时显示帮助弹窗
+            if (!localStorage.getItem('tips_seen')) {
+                showFirstTimeTips();
+            }
+
+            console.log('✅ 应用初始化完成');
+        }
+
+        // 显示首次使用提示
+        function showFirstTimeTips() {
+            uiManager.openTips();
+            localStorage.setItem('tips_seen', 'true');
+
+            const tipsCloseBtn = document.getElementById('tipsCloseBtn');
+            let countdown = 8;
+            tipsCloseBtn.textContent = `我明白了 (${countdown}s)`;
+
+            countdownInterval = setInterval(() => {
+                countdown--;
+                tipsCloseBtn.textContent = `我明白了 (${countdown}s)`;
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+
+            tipsTimeout = setTimeout(() => {
+                uiManager.closeTips();
+            }, 8000);
+        }
+
+        // 保存设置
+        function saveSettings() {
+            try {
+                const provider = document.getElementById('providerSelect').value;
+                const apiKey = document.getElementById('apiKeyInput').value.trim();
+                const apiUrl = document.getElementById('apiUrlInput').value.trim();
+                const model = document.getElementById('modelSelect').value;
+                const stream = document.getElementById('streamToggle').checked;
+
+                if (!apiKey) {
+                    alert('请输入当前服务商的 API Key');
+                    return;
+                }
+
+                // 更新配置
+                const updates = {
+                    provider,
+                    apiUrl,
+                    model,
+                    stream,
+                    apiKeys: { ...configManager.getConfig().apiKeys, [provider]: apiKey }
+                };
+
+                configManager.updateConfig(updates);
+                uiManager.updateApiStatus();
+                uiManager.closeSettings();
+                uiManager.addMessage('system', '✅ 配置已保存！现在可以开始使用AI生成流程图了。');
+
+            } catch (error) {
+                console.error('保存设置失败:', error);
+                alert('保存配置失败: ' + error.message);
+            }
+        }
+
+        // 导出设置
+        function exportSettings() {
+            try {
+                const exportConfig = configManager.exportConfig();
+                const configJson = JSON.stringify(exportConfig, null, 2);
+                downloadFile(configJson, 'prompt2draw_config.json', 'application/json');
+                uiManager.addMessage('system', '✅ 配置已导出为 prompt2draw_config.json');
+            } catch (error) {
+                console.error('导出失败:', error);
+                uiManager.addMessage('system', '❌ 导出失败: ' + error.message);
+            }
+        }
+
+        // 导入设置
+        function importSettings() {
+            document.getElementById('importFile').click();
+        }
+
+        // 处理文件导入
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            readFile(file).then(content => {
+                try {
+                    const importedConfig = JSON.parse(content);
+                    configManager.importConfig(importedConfig);
+
+                    // 刷新UI
+                    uiManager.updateApiStatus();
+                    uiManager.populateSettingsUI();
+
+                    // 刷新历史开关
+                    const config = configManager.getConfig();
+                    document.getElementById('historyToggle').checked = config.sendHistory;
+
+                    uiManager.addMessage('system', '✅ 配置已成功导入并应用！');
+                } catch (error) {
+                    uiManager.addMessage('system', '❌ 导入失败: ' + error.message);
+                }
+            }).catch(error => {
+                uiManager.addMessage('system', '❌ 文件读取失败: ' + error.message);
+            }).finally(() => {
+                // 重置文件输入框
+                event.target.value = null;
+            });
+        }
+
+        // 测试DrawIO功能
+        function testDrawIO() {
+            console.log('🧪 开始测试DrawIO功能...');
+
+            const status = window.drawioGenerator.getStatus();
+            console.log('📊 DrawIO状态:', status);
+
+            if (!status.frameExists) {
+                alert('❌ DrawIO iframe不存在');
+                return;
+            }
+
+            // 生成一个简单的测试XML
+            const testXml = window.drawioGenerator.generateExampleXML('simple');
+            console.log('📄 测试XML:', testXml);
+
+            try {
+                // 先尝试常规加载
+                let success = false;
+                if (status.ready) {
+                    success = window.drawioGenerator.loadXML(testXml);
+                }
+
+                // 如果常规加载失败，尝试强制加载
+                if (!success) {
+                    console.log('🔧 尝试强制加载...');
+                    success = window.drawioGenerator.forceLoadXML(testXml);
+                }
+
+                if (success) {
+                    setTimeout(() => {
+                        alert('✅ 测试成功！请检查左侧是否显示了流程图');
+                    }, 1000);
+                } else {
+                    alert('⏳ DrawIO正在准备中...');
+                }
+            } catch (error) {
+                console.error('❌ 测试失败:', error);
+                alert('❌ 测试失败: ' + error.message);
+            }
+        }
+
+        // 清理定时器
+        window.addEventListener('beforeunload', function() {
+            if (tipsTimeout) clearTimeout(tipsTimeout);
+            if (countdownInterval) clearInterval(countdownInterval);
+        });
+    </script>
+</body>
+</html>

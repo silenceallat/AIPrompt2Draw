@@ -1,0 +1,90 @@
+{
+  "name": "aiprompt2draw",
+  "version": "1.0.0",
+  "description": "🚀 零安装、秒开的AI流程图生成器 - 通过自然语言描述，快速生成专业的DrawIO流程图、架构图、UML图等",
+  "main": "src/index.html",
+  "scripts": {
+    "dev": "npx serve . --listen 3000",
+    "build": "echo 'No build process needed - pure HTML/CSS/JS'",
+    "serve": "python -m http.server 8000 || npx serve . --listen 8000",
+    "deploy": "echo 'Deploy src/ directory to your web server'",
+    "lint": "echo 'Manual linting required for vanilla JS project'",
+    "test": "echo 'Manual testing required - open src/index.html in browser'"
+  },
+  "keywords": [
+    "ai",
+    "flowchart",
+    "diagram",
+    "drawio",
+    "diagrams.net",
+    "prompt",
+    "chatgpt",
+    "claude",
+    "openai",
+    "visualization",
+    "uml",
+    "architecture",
+    "no-dependencies",
+    "frontend",
+    "javascript"
+  ],
+  "author": {
+    "name": "AIPrompt2Draw Team",
+    "email": "contact@aiprompt2draw.com",
+    "url": "https://github.com/silenceallat/AIPrompt2Draw"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/silenceallat/AIPrompt2Draw.git"
+  },
+  "bugs": {
+    "url": "https://github.com/silenceallat/AIPrompt2Draw/issues"
+  },
+  "homepage": "https://github.com/silenceallat/AIPrompt2Draw#readme",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie <= 11"
+  ],
+  "files": [
+    "src/",
+    "docs/",
+    "assets/",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
+  "config": {
+    "port": 3000,
+    "host": "localhost"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/silenceallat"
+  },
+  "manifest": {
+    "name": "AIPrompt2Draw",
+    "short_name": "Prompt2Draw",
+    "description": "AI流程图生成器",
+    "start_url": "/src/index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0f0f0f",
+    "orientation": "any",
+    "icons": [
+      {
+        "src": "https://silenceallat.top/assest/ico/3dc0bcfc-b3e8-45f3-9e06-20c548d3def2.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+
+# 主要页面
+Allow: /index.html
+Allow: /css/
+Allow: /js/
+Allow: /assets/
+Allow: /docs/
+
+# 搜索引擎爬虫延迟
+Crawl-delay: 1
+
+# 站点地图
+Sitemap: https://silenceallat.github.io/AIPrompt2Draw/sitemap.xml
+
+# 特定爬虫配置
+User-agent: Googlebot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: Sogou web spider
+Allow: /
+
+# 禁止访问的路径（如果有的话）
+# Disallow: /private/
+# Disallow: /admin/

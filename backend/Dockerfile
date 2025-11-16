@@ -1,6 +1,6 @@
 FROM openjdk:17-jdk-slim
 
-LABEL maintainer="AIPrompt2Draw <support@aiprompt2draw.com>"
+LABEL maintainer="AIPrompt2Draw <silenceallat@gmail.com>"
 
 WORKDIR /app
 

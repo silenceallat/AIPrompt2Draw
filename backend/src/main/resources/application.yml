@@ -3,20 +3,16 @@ spring:
     name: aiprompt2draw-backend
 
   profiles:
-    active: dev
+    active: local  # 默认使用本地配置文件
 
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/aiprompt2draw?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}
-    username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:root123}
-    hikari:
-      minimum-idle: 10
-      maximum-pool-size: 50
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      pool-name: AIPrompt2DrawHikariCP
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.redisson.spring.starter.RedissonAutoConfiguration
+      - org.redisson.spring.starter.RedissonAutoConfigurationV2
+
+  # 数据库配置已移至 application-local.yml
 
   data:
     redis:
@@ -83,17 +79,6 @@ management:
     health:
       show-details: when-authorized
 
-# Knife4j文档配置
-knife4j:
-  enable: true
-  setting:
-    language: zh_cn
-
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
 
 # 自定义应用配置
 app:

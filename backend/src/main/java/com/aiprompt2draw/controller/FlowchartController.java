@@ -10,14 +10,12 @@ import com.aiprompt2draw.utils.IpUtils;
 import com.aiprompt2draw.vo.GenerateResponse;
 import com.aiprompt2draw.vo.QuotaResponse;
 import com.aiprompt2draw.vo.Result;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 /**
  * 流程图生成API
@@ -29,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@Tag(name = "流程图生成API", description = "提供流程图生成和额度查询接口")
 public class FlowchartController {
 
     private final FlowchartService flowchartService;
@@ -39,9 +36,7 @@ public class FlowchartController {
      * 生成流程图
      */
     @PostMapping("/generate")
-    @Operation(summary = "生成流程图", description = "根据用户输入的描述生成流程图XML")
     public Result<GenerateResponse> generate(
-            @Parameter(description = "API Key", required = true)
             @RequestHeader("X-API-Key") String apiKey,
             @Valid @RequestBody GenerateRequest request,
             HttpServletRequest httpRequest) {
@@ -76,9 +71,7 @@ public class FlowchartController {
      * 查询额度
      */
     @GetMapping("/quota")
-    @Operation(summary = "查询额度", description = "查询API Key的剩余额度信息")
     public Result<QuotaResponse> getQuota(
-            @Parameter(description = "API Key", required = true)
             @RequestHeader("X-API-Key") String apiKeyValue) {
 
         // 验证API Key

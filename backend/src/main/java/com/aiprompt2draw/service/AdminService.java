@@ -68,6 +68,32 @@ public class AdminService {
     }
 
     /**
+     * 重置密码
+     *
+     * @param username    用户名
+     * @param oldPassword 原密码
+     * @param newPassword 新密码
+     */
+    public void resetPassword(String username, String oldPassword, String newPassword) {
+        AdminUser admin = getByUsername(username);
+        if (admin == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        // 验证原密码
+        if (!BCrypt.checkpw(oldPassword, admin.getPassword())) {
+            throw new BusinessException(400, "原密码错误");
+        }
+
+        // 更新密码
+        admin.setPassword(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+        admin.setUpdateTime(LocalDateTime.now());
+        adminUserMapper.updateById(admin);
+
+        log.info("用户重置密码成功: username={}", username);
+    }
+
+    /**
      * 根据用户名获取管理员
      *
      * @param username 用户名

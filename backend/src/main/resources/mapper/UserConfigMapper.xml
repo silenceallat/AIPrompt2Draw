@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiprompt2draw.mapper.UserConfigMapper">
+
+    <!-- 根据API Key ID查询配置列表 -->
+    <select id="selectByApiKeyId" resultType="com.aiprompt2draw.entity.UserConfig">
+        SELECT * FROM user_config
+        WHERE api_key_id = #{apiKeyId}
+        ORDER BY is_default DESC, update_time DESC
+    </select>
+
+    <!-- 根据API Key ID和配置类型查询 -->
+    <select id="selectByApiKeyIdAndType" resultType="com.aiprompt2draw.entity.UserConfig">
+        SELECT * FROM user_config
+        WHERE api_key_id = #{apiKeyId} AND config_type = #{configType}
+        LIMIT 1
+    </select>
+
+    <!-- 根据API Key ID删除配置 -->
+    <delete id="deleteByApiKeyId">
+        DELETE FROM user_config
+        WHERE api_key_id = #{apiKeyId}
+    </delete>
+
+    <!-- 根据API Key ID和配置类型删除 -->
+    <delete id="deleteByApiKeyIdAndType">
+        DELETE FROM user_config
+        WHERE api_key_id = #{apiKeyId} AND config_type = #{configType}
+    </delete>
+
+</mapper>

@@ -1,16 +1,12 @@
 package com.aiprompt2draw.service;
 
-import com.aiprompt2draw.constant.RedisKeyConstant;
 import com.aiprompt2draw.entity.ModelConfig;
 import com.aiprompt2draw.exception.BusinessException;
 import com.aiprompt2draw.mapper.ModelConfigMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * 模型配置服务
@@ -24,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 public class ModelConfigService {
 
     private final ModelConfigMapper modelConfigMapper;
-    private final StringRedisTemplate redisTemplate;
 
     /**
      * 根据模型类型获取配置
@@ -33,9 +28,6 @@ public class ModelConfigService {
      * @return 模型配置
      */
     public ModelConfig getByModelType(String modelType) {
-        // 先从缓存获取
-        String cacheKey = RedisKeyConstant.MODEL_CONFIG_PREFIX + modelType;
-
         // 从数据库查询
         LambdaQueryWrapper<ModelConfig> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ModelConfig::getModelType, modelType)
@@ -48,9 +40,6 @@ public class ModelConfigService {
         if (config == null) {
             throw new BusinessException("模型配置不存在或未启用: " + modelType);
         }
-
-        // 写入缓存
-        redisTemplate.opsForValue().set(cacheKey, "cached", 30, TimeUnit.MINUTES);
 
         return config;
     }

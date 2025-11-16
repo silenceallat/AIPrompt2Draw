@@ -1,28 +1,26 @@
 package com.aiprompt2draw.service;
 
-import com.aiprompt2draw.constant.RedisKeyConstant;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RRateLimiter;
-import org.redisson.api.RateIntervalUnit;
-import org.redisson.api.RateType;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 限流服务
  * <p>
- * 基于Redisson实现分布式限流
+ * 基于内存实现简单限流（演示用途）
  *
  * @author AIPrompt2Draw
  * @since 1.0.0
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RateLimitService {
 
-    private final RedissonClient redissonClient;
+    private final ConcurrentHashMap<String, AtomicInteger> apiKeyCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AtomicInteger> ipCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> lastResetTime = new ConcurrentHashMap<>();
 
     /**
      * 检查API Key限流
@@ -32,20 +30,25 @@ public class RateLimitService {
      * @return true-允许请求, false-超过限流
      */
     public boolean tryAcquire(String apiKey, int rateLimit) {
-        String rateLimitKey = RedisKeyConstant.RATE_LIMIT_PREFIX + apiKey;
-        RRateLimiter rateLimiter = redissonClient.getRateLimiter(rateLimitKey);
+        long currentTime = System.currentTimeMillis();
+        long oneMinuteAgo = currentTime - 60 * 1000;
 
-        // 设置限流规则: rateLimit次/分钟
-        rateLimiter.trySetRate(RateType.OVERALL, rateLimit, 1, RateIntervalUnit.MINUTES);
-
-        // 尝试获取许可
-        boolean acquired = rateLimiter.tryAcquire(1);
-
-        if (!acquired) {
-            log.warn("API Key限流触发: {}, 限制: {}次/分钟", apiKey, rateLimit);
+        // 重置过期的计数器
+        Long lastReset = lastResetTime.get(apiKey);
+        if (lastReset == null || lastReset < oneMinuteAgo) {
+            apiKeyCounters.put(apiKey, new AtomicInteger(0));
+            lastResetTime.put(apiKey, currentTime);
         }
 
-        return acquired;
+        AtomicInteger counter = apiKeyCounters.computeIfAbsent(apiKey, k -> new AtomicInteger(0));
+        int currentCount = counter.incrementAndGet();
+
+        if (currentCount > rateLimit) {
+            log.warn("API Key限流触发: {}, 限制: {}次/分钟", apiKey, rateLimit);
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -56,32 +59,36 @@ public class RateLimitService {
      * @return true-允许请求, false-超过限流
      */
     public boolean tryAcquireByIp(String ip, int rateLimit) {
-        String rateLimitKey = RedisKeyConstant.IP_RATE_LIMIT_PREFIX + ip;
-        RRateLimiter rateLimiter = redissonClient.getRateLimiter(rateLimitKey);
+        long currentTime = System.currentTimeMillis();
+        long oneHourAgo = currentTime - 60 * 60 * 1000;
 
-        // 设置限流规则: rateLimit次/小时
-        rateLimiter.trySetRate(RateType.OVERALL, rateLimit, 1, RateIntervalUnit.HOURS);
-
-        // 尝试获取许可
-        boolean acquired = rateLimiter.tryAcquire(1);
-
-        if (!acquired) {
-            log.warn("IP限流触发: {}, 限制: {}次/小时", ip, rateLimit);
+        // 重置过期的计数器
+        String ipKey = "ip_" + ip;
+        Long lastReset = lastResetTime.get(ipKey);
+        if (lastReset == null || lastReset < oneHourAgo) {
+            ipCounters.put(ipKey, new AtomicInteger(0));
+            lastResetTime.put(ipKey, currentTime);
         }
 
-        return acquired;
+        AtomicInteger counter = ipCounters.computeIfAbsent(ipKey, k -> new AtomicInteger(0));
+        int currentCount = counter.incrementAndGet();
+
+        if (currentCount > rateLimit) {
+            log.warn("IP限流触发: {}, 限制: {}次/小时", ip, rateLimit);
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * 获取剩余可用次数
      *
      * @param apiKey API Key
-     * @return 剩余次数
+     * @return 剩余次数（简化实现，返回一个固定值）
      */
     public long getAvailablePermits(String apiKey) {
-        String rateLimitKey = RedisKeyConstant.RATE_LIMIT_PREFIX + apiKey;
-        RRateLimiter rateLimiter = redissonClient.getRateLimiter(rateLimitKey);
-
-        return rateLimiter.availablePermits();
+        // 简化实现，实际应用中可以根据需要计算剩余次数
+        return 100L;
     }
 }

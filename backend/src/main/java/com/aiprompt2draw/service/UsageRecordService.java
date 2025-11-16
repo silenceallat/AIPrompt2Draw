@@ -61,8 +61,8 @@ public class UsageRecordService {
             BigDecimal cost = calculateCost(
                     aiResponse.getPromptTokens(),
                     aiResponse.getCompletionTokens(),
-                    modelConfig.getCostPer1kPromptTokens(),
-                    modelConfig.getCostPer1kCompletionTokens()
+                    modelConfig.getCostPerTkPromptTokens(),
+                    modelConfig.getCostPerTkCompletionTokens()
             );
             record.setCost(cost);
 

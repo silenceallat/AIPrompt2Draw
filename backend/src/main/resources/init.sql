@@ -16,12 +16,14 @@ CREATE TABLE `api_key` (
   `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态: 0-禁用 1-启用 2-已过期',
   `rate_limit` INT NOT NULL DEFAULT 10 COMMENT '每分钟请求限制',
   `expire_time` DATETIME COMMENT '过期时间',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除: 0-未删除 1-已删除',
   `remark` VARCHAR(255) COMMENT '备注信息',
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   INDEX `idx_key_value` (`key_value`),
   INDEX `idx_status` (`status`),
-  INDEX `idx_expire_time` (`expire_time`)
+  INDEX `idx_expire_time` (`expire_time`),
+  INDEX `idx_deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='API Key管理表';
 
 -- 2. 使用记录表
@@ -43,12 +45,14 @@ CREATE TABLE `usage_record` (
   `error_msg` TEXT COMMENT '错误信息',
   `ip_address` VARCHAR(64) COMMENT '请求IP',
   `user_agent` VARCHAR(512) COMMENT '用户代理',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除: 0-未删除 1-已删除',
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   INDEX `idx_api_key_id` (`api_key_id`),
   INDEX `idx_key_value` (`key_value`),
   INDEX `idx_model_type` (`model_type`),
   INDEX `idx_status` (`status`),
-  INDEX `idx_create_time` (`create_time`)
+  INDEX `idx_create_time` (`create_time`),
+  INDEX `idx_deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='API使用记录表';
 
 -- 3. 模型配置表
@@ -64,14 +68,16 @@ CREATE TABLE `model_config` (
   `temperature` DECIMAL(3, 2) DEFAULT 0.7 COMMENT '温度参数',
   `priority` INT NOT NULL DEFAULT 0 COMMENT '优先级(数字越大优先级越高)',
   `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态: 0-禁用 1-启用',
-  `cost_per_1k_prompt_tokens` DECIMAL(10, 6) COMMENT '每1K prompt tokens成本(元)',
-  `cost_per_1k_completion_tokens` DECIMAL(10, 6) COMMENT '每1K completion tokens成本(元)',
+  `cost_per_tk_prompt_tokens` DECIMAL(10, 6) COMMENT '每1K prompt tokens成本(元)',
+  `cost_per_tk_completion_tokens` DECIMAL(10, 6) COMMENT '每1K completion tokens成本(元)',
   `remark` VARCHAR(255) COMMENT '备注',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除: 0-未删除 1-已删除',
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   INDEX `idx_model_type` (`model_type`),
   INDEX `idx_status` (`status`),
-  INDEX `idx_priority` (`priority`)
+  INDEX `idx_priority` (`priority`),
+  INDEX `idx_deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI模型配置表';
 
 -- 4. 系统管理员表
@@ -85,19 +91,39 @@ CREATE TABLE `admin_user` (
   `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态: 0-禁用 1-启用',
   `last_login_time` DATETIME COMMENT '最后登录时间',
   `last_login_ip` VARCHAR(64) COMMENT '最后登录IP',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除: 0-未删除 1-已删除',
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  INDEX `idx_username` (`username`)
+  INDEX `idx_username` (`username`),
+  INDEX `idx_deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统管理员表';
 
 -- 插入默认管理员账号 (用户名: admin, 密码: admin123)
 -- BCrypt加密后的密码
 INSERT INTO `admin_user` (`username`, `password`, `nickname`, `email`, `status`)
-VALUES ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '系统管理员', 'admin@aiprompt2draw.com', 1);
+VALUES ('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '系统管理员', 'admin@aiprompt2draw.com', 1);
 
 -- 插入一个测试用的API Key (akt_test1234567890abcdef)
 INSERT INTO `api_key` (`key_value`, `key_type`, `quota`, `total_quota`, `status`, `rate_limit`, `expire_time`, `remark`)
 VALUES ('akt_test1234567890abcdef', 1, 10, 10, 1, 10, DATE_ADD(NOW(), INTERVAL 30 DAY), '测试用API Key');
+
+-- 5. 用户配置表
+DROP TABLE IF EXISTS `user_config`;
+CREATE TABLE `user_config` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '配置ID',
+  `api_key_id` BIGINT NOT NULL COMMENT 'API Key ID',
+  `config_type` VARCHAR(32) NOT NULL COMMENT '配置类型',
+  `config_content` TEXT COMMENT '配置内容（JSON格式）',
+  `config_name` VARCHAR(64) COMMENT '配置名称',
+  `is_default` TINYINT DEFAULT 0 COMMENT '是否默认配置: 0-否 1-是',
+  `deleted` TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除: 0-未删除 1-已删除',
+  `remark` VARCHAR(255) COMMENT '备注',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  INDEX `idx_api_key_id` (`api_key_id`),
+  INDEX `idx_config_type` (`config_type`),
+  INDEX `idx_deleted` (`deleted`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户配置表';
 
 -- 插入OpenAI模型配置示例 (需要替换真实的API Key)
 INSERT INTO `model_config` (`model_type`, `model_name`, `api_key`, `api_url`, `max_tokens`, `temperature`, `priority`, `status`, `cost_per_1k_prompt_tokens`, `cost_per_1k_completion_tokens`, `remark`)

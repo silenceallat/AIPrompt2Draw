@@ -3,12 +3,13 @@ package com.aiprompt2draw.interceptor;
 import cn.hutool.core.util.StrUtil;
 import com.aiprompt2draw.exception.BusinessException;
 import com.aiprompt2draw.utils.JwtUtils;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * JWT认证拦截器
@@ -33,12 +34,13 @@ public class JwtInterceptor implements HandlerInterceptor {
         // 获取Authorization头
         String authHeader = request.getHeader("Authorization");
 
-        if (StrUtil.isBlank(authHeader) || !authHeader.startsWith("Bearer ")) {
+        if (StrUtil.isBlank(authHeader)) {
             throw new BusinessException(401, "未授权,请先登录");
         }
 
         // 提取Token
-        String token = authHeader.substring(7);
+        //String token = authHeader.substring(7);
+        String token = authHeader;
 
         // 验证Token
         if (!jwtUtils.validateToken(token)) {

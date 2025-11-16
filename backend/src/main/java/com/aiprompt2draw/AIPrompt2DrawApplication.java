@@ -18,12 +18,10 @@ public class AIPrompt2DrawApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(AIPrompt2DrawApplication.class, args);
-        System.out.println("""
-
-            ========================================
-            AIPrompt2Draw Backend Started Successfully!
-            API Documentation: http://localhost:8080/doc.html
-            ========================================
-            """);
+        System.out.println("\n" +
+            "========================================\n" +
+            "AIPrompt2Draw Backend Started Successfully!\n" +
+            "API Documentation: http://localhost:8080\n" +
+            "========================================\n");
     }
 }

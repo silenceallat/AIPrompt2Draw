@@ -23,8 +23,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/admin/**")
+                .addPathPatterns("/api/v1/user/**")
                 .excludePathPatterns("/api/admin/login")
                 .excludePathPatterns("/api/admin/reset-password")
+                .excludePathPatterns("/api/auth/**")  // 认证端点不需要token验证
                 .order(1);
     }
 

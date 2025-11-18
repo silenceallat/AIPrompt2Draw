@@ -1,0 +1,33 @@
+# 敏感配置文件
+application-local.yml
+application-prod.yml
+.env
+.env.local
+.env.prod
+
+# 数据库配置
+database.properties
+
+# 日志文件
+logs/
+*.log
+
+# 编译输出
+target/
+build/
+out/
+
+# IDE相关
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.temp

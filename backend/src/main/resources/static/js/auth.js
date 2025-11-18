@@ -1,6 +1,6 @@
 /**
  * 认证管理模块
- * 负责用户登录、登出、token验证和权限管理
+ * 负责用户登录、登出、token验证和权限控制
  */
 
 class AuthManager {
@@ -10,6 +10,11 @@ class AuthManager {
         this.tokenExpiry = null;
         this.refreshTimer = null;
         this.eventTarget = new EventTarget();
+
+        // 防重复跳转机制
+        this.isRedirecting = false;
+        this.lastRedirectTime = 0;
+        this.redirectCooldown = 2000; // 2秒冷却时间
 
         // 绑定方法到实例
         this.handleTokenExpired = this.handleTokenExpired.bind(this);
@@ -27,7 +32,7 @@ class AuthManager {
         this.setupEventListeners();
 
         if (AppConfig.DEBUG.ENABLED) {
-            console.log('🔐 认证管理器已初始化');
+            console.log('认证管理器已初始化');
         }
     }
 
@@ -54,7 +59,7 @@ class AuthManager {
      * 设置事件监听器
      */
     setupEventListeners() {
-        // 页面可见性变化时检查token状态
+        // 页面可见性变化时检查Token状态
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
         // 页面即将卸载时清理资源
@@ -148,7 +153,7 @@ class AuthManager {
             this.logInfo('用户已登出', { user: user?.username });
             return true;
         } catch (error) {
-            this.logError('登出异常', error);
+            this.logError('用户登出异常', error);
             return false;
         }
     }
@@ -165,7 +170,7 @@ class AuthManager {
 
             // 检查token是否过期
             if (this.isTokenExpired()) {
-                this.logDebug('Token已过期');
+                this.logDebug('Token已过期，处理登出');
                 return false;
             }
 
@@ -287,12 +292,18 @@ class AuthManager {
      * @returns {Object} 包含Authorization的headers
      */
     getAuthHeaders() {
+        // 确保从本地存储重新加载token
         if (!this.token) {
+            this.loadStoredAuth();
+        }
+
+        const token = this.getToken();
+        if (!token) {
             throw new Error('No authentication token available');
         }
 
         return {
-            'Authorization': AppConfig.AUTH.BEARER_PREFIX + this.token,
+            'Authorization': AppConfig.AUTH.BEARER_PREFIX + token,
             'Content-Type': 'application/json'
         };
     }
@@ -368,6 +379,60 @@ class AuthManager {
         this.logDebug('Token已过期，处理登出');
         this.emitEvent(AppEvents.AUTH_TOKEN_EXPIRED, this.user);
         this.clearAuth();
+
+        // 优先交给路由处理重定向，若路由不存在再降级
+        if (!window.router) {
+            this.redirectToLogin();
+        }
+    }
+
+    /**
+     * 重定向到登录页面
+     */
+    redirectToLogin() {
+        // 防重复跳转检查
+        const currentTime = Date.now();
+        if (this.isRedirecting || (currentTime - this.lastRedirectTime) < this.redirectCooldown) {
+            this.logDebug('跳转冷却中，忽略重定向请求');
+            return;
+        }
+
+        // 检查当前是否已经在登录页面
+        const currentPath = window.location.pathname;
+        const normalizedHash = window.location.hash.replace(/^#\/?/, '');
+
+        // 如果已经在登录页面，不需要跳转
+        if (normalizedHash === AppConfig.ROUTES.LOGIN || currentPath.includes('login')) {
+            this.logDebug('已经在登录页面，无需跳转');
+        }
+
+        this.logDebug('重定向到登录页面');
+        this.isRedirecting = true;
+        this.lastRedirectTime = currentTime;
+
+        try {
+            if (currentPath === '/' || currentPath === '/index.html') {
+                // 如果已经在主页面，只需要切换到登录状态
+                if (window.router && !window.router.isNavigating) {
+                    window.router.navigate(AppConfig.ROUTES.LOGIN, { replaceState: true });
+                } else {
+                    // 降级处理：直接修改hash
+                    window.location.hash = `#${AppConfig.ROUTES.LOGIN}`;
+                }
+            } else {
+                // 如果在其他页面，直接跳转到根路径（会自动加载登录组件）
+                window.location.href = `/#${AppConfig.ROUTES.LOGIN}`;
+            }
+        } catch (error) {
+            this.logError('重定向失败', error);
+            // 降级处理
+            window.location.href = `/#${AppConfig.ROUTES.LOGIN}`;
+        } finally {
+            // 重置跳转状态
+            setTimeout(() => {
+                this.isRedirecting = false;
+            }, 1000);
+        }
     }
 
     /**
@@ -375,7 +440,7 @@ class AuthManager {
      */
     handleVisibilityChange() {
         if (!document.hidden && this.isLoggedIn()) {
-            // 页面重新可见时检查token状态
+            // 页面重新可见时检查Token状态
             this.verifyToken().catch(error => {
                 this.logError('页面可见性检查失败', error);
                 this.handleTokenExpired();
@@ -447,7 +512,7 @@ class AuthManager {
 
 // 创建全局认证管理器实例
 window.authManager = new AuthManager();
-window.AuthManager = AuthManager; // 兼容启动脚本检查
+window.AuthManager = AuthManager; // 兼容异步脚本检查
 
 // 导出类（用于模块化环境）
 if (typeof module !== 'undefined' && module.exports) {

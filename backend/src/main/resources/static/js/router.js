@@ -24,6 +24,28 @@ class Router {
     }
 
     /**
+     * 标准化路由路径，剥离多余的 # 和 /
+     * @param {string} path - 原始路径
+     * @returns {string} 规范化后的路径
+     */
+    normalizePath(path) {
+        if (!path) return '';
+
+        let normalized = path.trim();
+        if (normalized.startsWith('#')) {
+            normalized = normalized.slice(1);
+        }
+        if (normalized.startsWith('/')) {
+            normalized = normalized.slice(1);
+        }
+        if (normalized.endsWith('/')) {
+            normalized = normalized.slice(0, -1);
+        }
+
+        return normalized;
+    }
+
+    /**
      * 初始化路由管理器
      */
     init() {
@@ -31,7 +53,7 @@ class Router {
         this.registerDefaultRoutes();
 
         if (AppConfig.DEBUG.ENABLED) {
-            console.log('🛣️ 路由管理器已初始化');
+            console.log('路由管理器已初始化');
         }
     }
 
@@ -83,7 +105,7 @@ class Router {
 
         this.register(AppConfig.ROUTES.PROFILE, {
             component: 'profile',
-            title: '个人中心',
+            title: '一语成图',
             requireAuth: true,
             adminOnly: false
         });
@@ -102,8 +124,10 @@ class Router {
      * @param {Object} config - 路由配置
      */
     register(path, config) {
-        this.routes.set(path, {
-            path,
+        const normalizedPath = this.normalizePath(path);
+
+        this.routes.set(normalizedPath, {
+            path: normalizedPath,
             component: config.component,
             title: config.title,
             requireAuth: config.requireAuth || false,
@@ -121,46 +145,52 @@ class Router {
      * @returns {Promise<boolean>} 导航是否成功
      */
     async navigate(path, options = {}) {
+        const targetPath = this.normalizePath(path);
+
         if (this.isNavigating) {
-            this.logDebug('正在导航中，忽略导航请求', { path });
+            this.logDebug('正在导航中，忽略导航请求', { path: targetPath });
             return false;
         }
 
         try {
+            if (!targetPath) {
+                return this.navigate(AppConfig.ROUTES.LOGIN, options);
+            }
+
             this.isNavigating = true;
 
             // 触发路由变更前事件
             const beforeEvent = new CustomEvent(AppEvents.ROUTE_BEFORE_CHANGE, {
-                detail: { from: this.currentRoute, to: path, options }
+                detail: { from: this.currentRoute, to: targetPath, options }
             });
             this.eventTarget.dispatchEvent(beforeEvent);
 
             if (beforeEvent.defaultPrevented) {
-                this.logDebug('路由变更被阻止', { path });
+                this.logDebug('路由变更被阻止', { path: targetPath });
                 return false;
             }
 
             // 检查路由是否存在
-            if (!this.routes.has(path)) {
-                this.logError('路由不存在', { path });
-                await this.navigate(AppConfig.ROUTES.MAIN);
-                return false;
+            if (!this.routes.has(targetPath)) {
+                this.isNavigating = false;
+                this.logError('路由不存在', { path: targetPath, originalPath: path });
+                return this.navigate(AppConfig.ROUTES.LOGIN, { replaceState: true });
             }
 
-            const routeConfig = this.routes.get(path);
+            const routeConfig = this.routes.get(targetPath);
 
             // 执行路由前置守卫
             if (routeConfig.beforeEnter) {
                 const canEnter = await routeConfig.beforeEnter(routeConfig, this.currentRoute);
                 if (!canEnter) {
-                    this.logDebug('路由前置守卫阻止进入', { path });
+                    this.logDebug('路由前置守卫阻止进入', { path: targetPath });
                     return false;
                 }
             }
 
             // 权限验证
             if (!await this.checkRoutePermission(routeConfig)) {
-                this.logDebug('权限验证失败', { path });
+                this.logDebug('权限验证失败', { path: targetPath });
                 return false;
             }
 
@@ -181,7 +211,7 @@ class Router {
             });
             this.eventTarget.dispatchEvent(afterEvent);
 
-            this.logInfo('路由导航成功', { path, title: routeConfig.title });
+            this.logInfo('路由导航成功', { path: targetPath, title: routeConfig.title });
             return true;
 
         } catch (error) {
@@ -198,10 +228,23 @@ class Router {
      * @returns {Promise<boolean>} 是否有权限
      */
     async checkRoutePermission(routeConfig) {
-        // 检查是否需要认证
         const authManager = window.authManager || window.AuthManager;
+
+        // 认证缺失时的兜底处理
+        if (!authManager) {
+            if (routeConfig.requireAuth) {
+                await this.redirectToLogin();
+                return false;
+            }
+            return true;
+        }
+
+        // 检查是否需要认证
         if (routeConfig.requireAuth && !authManager.isLoggedIn()) {
-            await this.redirectToLogin();
+            // 避免在已经是登录路由时重复跳转
+            if (routeConfig.path !== AppConfig.ROUTES.LOGIN) {
+                await this.redirectToLogin();
+            }
             return false;
         }
 
@@ -210,7 +253,7 @@ class Router {
             this.logDebug('需要管理员权限', { path: routeConfig.path });
             if (authManager.isLoggedIn()) {
                 await this.navigate(AppConfig.ROUTES.MAIN);
-            } else {
+            } else if (routeConfig.path !== AppConfig.ROUTES.LOGIN) {
                 await this.redirectToLogin();
             }
             return false;
@@ -232,22 +275,16 @@ class Router {
         document.title = routeConfig.title;
 
         // 更新浏览器历史
-        if (!options.replaceState) {
-            const state = { path: routeConfig.path };
-            window.history.pushState(state, routeConfig.title, `#${routeConfig.path}`);
+        const state = { path: routeConfig.path };
+        const hashUrl = `${window.location.pathname}${window.location.search}#${routeConfig.path}`;
+        if (options.replaceState) {
+            window.history.replaceState(state, routeConfig.title, hashUrl);
+        } else {
+            window.history.pushState(state, routeConfig.title, hashUrl);
         }
 
         // 加载组件
         await this.loadComponent(routeConfig.component);
-
-        // 更新浏览器URL
-        if (routeConfig.path !== AppConfig.ROUTES.LOGIN) {
-            window.history.replaceState(
-                { path: routeConfig.path },
-                routeConfig.title,
-                window.location.pathname + window.location.search + '#' + routeConfig.path
-            );
-        }
     }
 
     /**
@@ -266,6 +303,11 @@ class Router {
         try {
             // 动态加载组件
             const component = await this.loadComponentModule(componentName);
+
+            // 确保组件已初始化
+            if (!component.isRendered && typeof component.init === 'function') {
+                component.init();
+            }
 
             // 渲染组件
             await component.render(contentContainer);
@@ -438,11 +480,13 @@ class Router {
 
         const href = link.getAttribute('href');
 
-        // 只处理内部路由链接
+        // 只处理内部路由链接（hash 模式），其余交给浏览器
         if (href && href.startsWith('#')) {
             event.preventDefault();
-            const path = href.substring(1);
-            this.navigate(path);
+            const path = this.normalizePath(href);
+            if (path) {
+                this.navigate(path);
+            }
         }
     }
 
@@ -471,7 +515,7 @@ class Router {
      */
     logDebug(message, data) {
         if (AppConfig.DEBUG.ENABLED && AppConfig.DEBUG.CONSOLE_LOGS) {
-            console.log(`🛣️ [Router] ${message}`, data);
+            console.log(`🛠️[Router] ${message}`, data);
         }
     }
 
@@ -482,7 +526,7 @@ class Router {
      */
     logInfo(message, data) {
         if (AppConfig.DEBUG.CONSOLE_LOGS) {
-            console.info(`🛣️ [Router] ${message}`, data);
+            console.info(`🛠️[Router] ${message}`, data);
         }
     }
 
@@ -493,14 +537,14 @@ class Router {
      */
     logError(message, error) {
         if (AppConfig.DEBUG.CONSOLE_LOGS) {
-            console.error(`🛣️ [Router] ${message}`, error);
+            console.error(`🛠️[Router] ${message}`, error);
         }
     }
 }
 
 // 创建全局路由管理器实例
 window.router = new Router();
-window.Router = Router; // 兼容启动脚本检查
+window.Router = Router; // 兼容异步脚本检查
 
 // 导出类（用于模块化环境）
 if (typeof module !== 'undefined' && module.exports) {

@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
@@ -294,26 +295,25 @@ public class UserConfigController {
      * 获取用户配置信息
      */
     @GetMapping("/config")
-    public Result<Map<String, Object>> getUserConfig(
-            @RequestHeader("X-API-Key") String apiKey) {
+    public Result<Map<String, Object>> getUserConfig(HttpServletRequest request) {
         try {
-            log.info("获取用户配置，API Key: {}", apiKey.substring(0, Math.min(10, apiKey.length())) + "...");
+            // 从请求属性中获取用户名（由JWT拦截器设置）
+            String username = (String) request.getAttribute("username");
+            log.info("获取用户配置，用户: {}", username);
 
-            // 验证API Key
-            ApiKey apiKeyEntity = apiKeyService.validateApiKey(apiKey);
-            if (apiKeyEntity == null) {
-                return Result.error(401, "无效的API Key");
+            if (username == null) {
+                return Result.error(401, "用户未认证");
             }
 
-            // 获取用户配额信息
-            Integer quota = apiKeyService.getQuota(apiKey);
+            // 获取用户配额信息（简化版本，返回默认配额）
             Map<String, Object> quotaInfo = new HashMap<>();
-            quotaInfo.put("remainingQuota", quota);
-            quotaInfo.put("apiKeyId", apiKeyEntity.getId());
+            quotaInfo.put("remainingQuota", 1000); // 默认配额
+            quotaInfo.put("totalQuota", 1000);
+            quotaInfo.put("usedQuota", 0);
 
             // 构建配置信息
             Map<String, Object> config = new HashMap<>();
-            config.put("apiKey", apiKey);
+            config.put("username", username);
             config.put("quota", quotaInfo);
             config.put("features", getAvailableFeatures());
             config.put("supportedModels", getSupportedModels());

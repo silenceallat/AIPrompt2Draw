@@ -294,7 +294,7 @@ class App {
                 await this.initializeModule('component', window.componentManager);
             }
 
-            this.logInfo('所有模块初始化完成');
+            this.logInfo('模块加载完成');
 
         } catch (error) {
             this.logError('模块初始化失败', error);
@@ -331,7 +331,7 @@ class App {
         window.addEventListener('offline', this.handleOnlineStatusChange);
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
-        // 网络状态监听
+        // 网络状态监控
         this.setupNetworkMonitoring();
 
         // 认证事件监听
@@ -418,14 +418,18 @@ class App {
      * 获取初始路由
      */
     getInitialRoute() {
-        // 检查URL hash
-        const hashPath = window.location.hash.substring(1);
+        const router = window.router;
+        const rawHash = window.location.hash;
+        const hashPath = router
+            ? router.normalizePath(rawHash)
+            : rawHash.replace(/^#\/?/, '');
+
         if (hashPath) {
             return hashPath;
         }
 
         // 根据认证状态决定默认路由
-        if (window.authManager.isLoggedIn()) {
+        if (window.authManager && window.authManager.isLoggedIn()) {
             return window.authManager.isAdmin()
                 ? AppConfig.ROUTES.ADMIN
                 : AppConfig.ROUTES.MAIN;
@@ -623,7 +627,7 @@ class App {
      */
     logDebug(message, data) {
         if (AppConfig.DEBUG.ENABLED && AppConfig.DEBUG.CONSOLE_LOGS) {
-            console.log(`🚀 [App] ${message}`, data);
+            console.log(`🎯 [App] ${message}`, data);
         }
     }
 
@@ -632,7 +636,7 @@ class App {
      */
     logInfo(message, data) {
         if (AppConfig.DEBUG.CONSOLE_LOGS) {
-            console.info(`🚀 [App] ${message}`, data);
+            console.info(`🎯 [App] ${message}`, data);
         }
     }
 

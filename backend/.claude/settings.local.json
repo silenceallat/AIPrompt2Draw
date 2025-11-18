@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn compile exec:java:*)",
+      "Bash(mvn exec:java:*)",
+      "Bash(mvn compile:*)",
+      "Bash(mvn spring-boot:run:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(tasklist:*)",
+      "Bash(redis-cli:*)",
+      "Bash(nul:*)",
+      "Bash(timeout:*)",
+      "Bash(mvn clean:*)",
+      "Bash(xxd:*)",
+      "Bash(powershell:*)",
+      "Bash(python:*)",
+      "Bash(node:*)",
+      "Bash(/tmp/extracted_js.js)",
+      "Bash(curl:*)",
+      "Bash(/dev/null)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

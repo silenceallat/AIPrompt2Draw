@@ -4,10 +4,11 @@ import com.aiprompt2draw.dto.LoginRequest;
 import com.aiprompt2draw.entity.AdminUser;
 import com.aiprompt2draw.service.AdminService;
 import com.aiprompt2draw.utils.IpUtils;
+import com.aiprompt2draw.utils.JwtUtils;
 import com.aiprompt2draw.vo.LoginResponse;
 import com.aiprompt2draw.vo.Result;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,10 +23,13 @@ import javax.validation.Valid;
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
-    private final AdminService adminService;
+    @Autowired
+    private AdminService adminService;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     /**
      * 统一登录
@@ -57,8 +61,8 @@ public class AuthController {
             // 管理员登录失败，尝试普通用户登录
             // 普通用户使用固定的测试凭证（实际项目中应该有用户表）
             if ("user".equals(request.getUsername()) && "user123".equals(request.getPassword())) {
-                // 生成普通用户token（简化处理）
-                String token = "user_token_" + System.currentTimeMillis();
+                // 为普通用户生成JWT token（使用现有方法）
+                String token = jwtUtils.generateToken(request.getUsername());
 
                 // 构建响应 - 普通用户
                 LoginResponse response = new LoginResponse(
@@ -92,26 +96,36 @@ public class AuthController {
      */
     @GetMapping("/verify")
     public Result<LoginResponse> verify(@RequestHeader("Authorization") String token) {
-        // 简化处理，实际项目中应该验证token有效性
-        if (token != null && (token.startsWith("user_token_") || token.length() > 50)) {
-            // 根据token判断用户类型
-            if (token.startsWith("user_token_")) {
-                LoginResponse response = new LoginResponse(
-                        token,
-                        "user",
-                        "普通用户",
-                        "user"
-                );
-                return Result.success(response);
-            } else {
-                // 管理员token（JWT）
-                LoginResponse response = new LoginResponse(
-                        token,
-                        "admin",
-                        "系统管理员",
-                        "admin"
-                );
-                return Result.success(response);
+        // 验证JWT token
+        if (token != null && token.length() > 50) {
+            try {
+                // 验证token并获取用户信息（使用现有方法）
+                String username = jwtUtils.getUsernameFromToken(token);
+
+                // 检查token是否有效
+                if (jwtUtils.validateToken(token)) {
+                    // 根据token长度判断用户类型
+                    if (token.length() < 200) { // 管理员token较长
+                        LoginResponse response = new LoginResponse(
+                                token,
+                                username,
+                                "系统管理员",
+                                "admin"
+                        );
+                        return Result.success(response);
+                    } else { // 普通用户token
+                        LoginResponse response = new LoginResponse(
+                                token,
+                                username,
+                                "普通用户",
+                                "user"
+                        );
+                        return Result.success(response);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Token验证失败: {}", e.getMessage());
+                return Result.error(401, "Token无效");
             }
         }
         return Result.error(401, "Token无效");

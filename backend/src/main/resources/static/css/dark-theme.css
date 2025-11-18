@@ -1,0 +1,299 @@
+/**
+ * AIPrompt2Draw 深色主题样式
+ * 基于data-theme="dark"属性的深色模式适配
+ */
+
+/* 深色模式基础样式 */
+body.dark-mode {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    color: #e5e7eb;
+}
+
+/* 面板深色模式 */
+body.dark-mode .left-panel,
+body.dark-mode .chat-card,
+body.dark-mode .modal {
+    background: #1f2937;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid #374151;
+}
+
+/* DrawIO容器深色模式 */
+body.dark-mode .drawio-container {
+    background: #111827;
+}
+
+body.dark-mode .drawio-placeholder {
+    background: #111827;
+    color: #6b7280;
+}
+
+/* 头部深色模式 */
+body.dark-mode .header,
+body.dark-mode .chat-header {
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    border-bottom: 1px solid #4b5563;
+}
+
+/* 按钮深色模式 */
+body.dark-mode .settings-btn,
+body.dark-mode .theme-toggle-btn {
+    background: rgba(75, 85, 99, 0.4);
+    border-color: rgba(75, 85, 99, 0.6);
+}
+
+body.dark-mode .settings-btn:hover,
+body.dark-mode .theme-toggle-btn:hover {
+    background: rgba(75, 85, 99, 0.6);
+}
+
+body.dark-mode .help-btn {
+    background: rgba(75, 85, 99, 0.4);
+    border-color: rgba(75, 85, 99, 0.6);
+}
+
+body.dark-mode .help-btn:hover {
+    background: rgba(75, 85, 99, 0.6);
+}
+
+/* API状态深色模式 */
+body.dark-mode .api-status {
+    background: rgba(75, 85, 99, 0.4);
+}
+
+/* 配额状态深色模式 */
+body.dark-mode .quota-status {
+    background: rgba(75, 85, 99, 0.4);
+    border-color: rgba(75, 85, 99, 0.6);
+    color: #e5e7eb;
+}
+
+body.dark-mode .quota-status:hover {
+    background: rgba(75, 85, 99, 0.6);
+}
+
+body.dark-mode .quota-status.quota-normal {
+    border-color: rgba(76, 175, 80, 0.6);
+    color: #4ade80;
+}
+
+body.dark-mode .quota-status.quota-warning {
+    border-color: rgba(255, 152, 0, 0.6);
+    color: #fbbf24;
+}
+
+body.dark-mode .quota-status.quota-critical {
+    border-color: rgba(244, 67, 54, 0.6);
+    color: #f87171;
+}
+
+body.dark-mode .quota-status.quota-exceeded {
+    border-color: rgba(211, 47, 47, 0.6);
+    color: #ef4444;
+    background: rgba(244, 67, 54, 0.2);
+}
+
+body.dark-mode .quota-status.quota-unlimited {
+    border-color: rgba(33, 150, 243, 0.6);
+    color: #60a5fa;
+}
+
+/* 聊天消息区域深色模式 */
+body.dark-mode .chat-messages {
+    background: #111827;
+}
+
+body.dark-mode .chat-messages::-webkit-scrollbar-thumb {
+    background: #374151;
+}
+
+/* 消息样式深色模式 */
+body.dark-mode .message.assistant .message-content {
+    background: #374151;
+    color: #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .message.user .message-content {
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+body.dark-mode .message.system .message-content {
+    background: #4b5563;
+    color: #fcd34d;
+    box-shadow: 0 2px 8px rgba(75, 85, 99, 0.2);
+}
+
+body.dark-mode .message.assistant .message-content .token-usage {
+    color: #9ca3af;
+}
+
+/* XML代码块深色模式 */
+body.dark-mode .xml-code {
+    background: #111827;
+    border: 1px solid #374151;
+    color: #d1d5db;
+}
+
+/* 按钮深色模式 */
+body.dark-mode .load-btn {
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+body.dark-mode .load-btn:hover {
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}
+
+body.dark-mode .copy-btn {
+    background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+    box-shadow: 0 2px 8px rgba(75, 85, 99, 0.3);
+}
+
+body.dark-mode .copy-btn:hover {
+    box-shadow: 0 4px 12px rgba(75, 85, 99, 0.4);
+}
+
+/* 聊天输入区域深色模式 */
+body.dark-mode .chat-input-container,
+body.dark-mode .modal-footer {
+    background: #1f2937;
+    border-top: 1px solid #374151;
+}
+
+body.dark-mode .chat-input-container .form-group {
+    border-bottom-color: #374151;
+}
+
+body.dark-mode .chat-input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #e5e7eb;
+}
+
+body.dark-mode .chat-input:focus {
+    border-color: #22c55e;
+    background: #374151;
+}
+
+body.dark-mode .send-btn {
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+body.dark-mode .send-btn:hover:not(:disabled) {
+    box-shadow: 0 6px 16px rgba(22, 163, 74, 0.4);
+}
+
+/* 模态框深色模式 */
+body.dark-mode .modal-header {
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+}
+
+body.dark-mode .modal-close {
+    background: rgba(75, 85, 99, 0.4);
+}
+
+body.dark-mode .modal-close:hover {
+    background: rgba(75, 85, 99, 0.6);
+}
+
+body.dark-mode .modal-body {
+    color: #e5e7eb;
+}
+
+body.dark-mode #tipsModal .modal-body ol {
+    color: #9ca3af;
+}
+
+body.dark-mode #tipsModal .modal-body strong {
+    color: #22c55e;
+}
+
+body.dark-mode .example-prompt {
+    background: #273a28;
+    color: #4ade80;
+    border: 1px solid #2e5a30;
+}
+
+body.dark-mode .example-prompt:hover {
+    background: #304e32;
+    border-color: #3f7542;
+}
+
+/* 表单深色模式 */
+body.dark-mode .form-group label {
+    color: #e5e7eb;
+}
+
+body.dark-mode .form-group input,
+body.dark-mode .form-group select {
+    background: #374151;
+    border-color: #4b5563;
+    color: #e5e7eb;
+}
+
+body.dark-mode .form-group input:disabled,
+body.dark-mode .form-group select:disabled {
+    background: #2d3748;
+    color: #718096;
+}
+
+body.dark-mode .form-group input:focus,
+body.dark-mode .form-group select:focus {
+    border-color: #22c55e;
+    background: #374151;
+}
+
+body.dark-mode .form-group small,
+body.dark-mode .modal-body small {
+    color: #9ca3af;
+}
+
+body.dark-mode .form-group small a {
+    color: #22c55e;
+}
+
+body.dark-mode .btn-secondary {
+    background: #4b5563;
+    color: #e5e7eb;
+}
+
+body.dark-mode .btn-secondary:hover {
+    background: #6b7280;
+}
+
+body.dark-mode .btn-primary {
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+body.dark-mode .btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}
+
+/* 特殊组件深色模式 */
+body.dark-mode .drawio-overlay {
+    background: rgba(31, 41, 55, 0.95);
+}
+
+body.dark-mode .intro-content {
+    color: #e5e7eb;
+}
+
+body.dark-mode .intro-content h2 {
+    color: #c9a961;
+}
+
+body.dark-mode .ai-loading-overlay {
+    background: rgba(31, 41, 55, 0.9);
+}
+
+body.dark-mode .ai-loading-content {
+    color: #e5e7eb;
+}
+
+body.dark-mode .thinking-indicator {
+    color: #9ca3af;
+}

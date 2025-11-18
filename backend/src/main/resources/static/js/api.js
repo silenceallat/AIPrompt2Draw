@@ -10,6 +10,11 @@ class ApiClient {
         this.retryCount = AppConfig.NETWORK.RETRY_COUNT;
         this.retryDelay = AppConfig.NETWORK.RETRY_DELAY;
 
+        // 防重复跳转机制
+        this.isRedirecting = false;
+        this.lastRedirectTime = 0;
+        this.redirectCooldown = 2000; // 2秒冷却时间
+
         // 绑定方法
         this.handleResponse = this.handleResponse.bind(this);
         this.handleNetworkError = this.handleNetworkError.bind(this);
@@ -160,13 +165,26 @@ class ApiClient {
                 responseData = await response.blob();
             }
 
-            // 检查业务状态码
-            if (responseData && typeof responseData === 'object' && 'success' in responseData) {
+            // 检查业务状态码 - 兼容后端返回格式
+            if (responseData && typeof responseData === 'object') {
+                // 如果后端返回的是code格式，转换为success格式
+                if ('code' in responseData && !('success' in responseData)) {
+                    responseData.success = responseData.code === 200;
+                }
+
+                // 现在检查success字段
                 if (!responseData.success) {
                     const error = new Error(responseData.message || '请求失败');
                     error.code = responseData.code;
                     error.data = responseData.data;
                     error.businessError = true;
+
+                    // 检查是否是token过期
+                    if (responseData.tokenExpired === true) {
+                        this.logWarning('检测到token过期标记');
+                        this.handleUnauthorized();
+                    }
+
                     throw error;
                 }
             }
@@ -243,6 +261,9 @@ class ApiClient {
         const authManager = window.authManager || window.AuthManager;
         if (authManager) {
             authManager.handleTokenExpired();
+        } else {
+            // 如果认证管理器不存在，直接跳转到登录页面
+            this.redirectToLogin();
         }
 
         // 清除认证信息
@@ -281,6 +302,56 @@ class ApiClient {
         const authManager = window.authManager || window.AuthManager;
         if (authManager) {
             authManager.clearAuth();
+        }
+    }
+
+    /**
+     * 重定向到登录页面
+     */
+    redirectToLogin() {
+        // 防重复跳转检查
+        const currentTime = Date.now();
+        if (this.isRedirecting || (currentTime - this.lastRedirectTime) < this.redirectCooldown) {
+            this.logWarning('跳转冷却中，忽略重定向请求');
+            return;
+        }
+
+        // 检查当前是否已经在登录页面
+        const currentPath = window.location.pathname;
+        const normalizedHash = window.location.hash.replace(/^#\/?/, '');
+
+        // 如果已经在登录页面，不需要跳转
+        if (normalizedHash === AppConfig.ROUTES.LOGIN || currentPath.includes('login')) {
+            this.logWarning('已经在登录页面，无需跳转');
+            return;
+        }
+
+        this.logWarning('重定向到登录页面');
+        this.isRedirecting = true;
+        this.lastRedirectTime = currentTime;
+
+        try {
+            if (currentPath === '/' || currentPath === '/index.html') {
+                // 如果已经在主页面，只需要切换到登录状态
+                if (window.router && !window.router.isNavigating) {
+                    window.router.navigate(AppConfig.ROUTES.LOGIN, { replaceState: true });
+                } else {
+                    // 降级处理：直接修改hash
+                    window.location.hash = `#${AppConfig.ROUTES.LOGIN}`;
+                }
+            } else {
+                // 如果在其他页面，直接跳转到根路径（会自动加载登录组件）
+                window.location.href = `/#${AppConfig.ROUTES.LOGIN}`;
+            }
+        } catch (error) {
+            this.logError('重定向失败', error);
+            // 降级处理
+            window.location.href = `/#${AppConfig.ROUTES.LOGIN}`;
+        } finally {
+            // 重置跳转状态
+            setTimeout(() => {
+                this.isRedirecting = false;
+            }, 1000);
         }
     }
 

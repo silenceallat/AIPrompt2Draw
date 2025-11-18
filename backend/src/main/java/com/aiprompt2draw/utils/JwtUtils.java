@@ -45,6 +45,28 @@ public class JwtUtils {
     }
 
     /**
+     * 生成Token（包含角色和昵称）
+     *
+     * @param username 用户名
+     * @param role 用户角色
+     * @param nickname 用户昵称
+     * @return Token字符串
+     */
+    public String createToken(String username, String role, String nickname) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + expiration * 1000);
+
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("role", role)
+                .claim("nickname", nickname)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(SignatureAlgorithm.HS256, secret.getBytes(StandardCharsets.UTF_8))
+                .compact();
+    }
+
+    /**
      * 解析Token获取用户名
      *
      * @param token Token字符串
@@ -53,6 +75,38 @@ public class JwtUtils {
     public String getUsernameFromToken(String token) {
         Claims claims = parseToken(token);
         return claims != null ? claims.getSubject() : null;
+    }
+
+    /**
+     * 从Token中提取用户名（新方法名）
+     *
+     * @param token Token字符串
+     * @return 用户名
+     */
+    public String extractUsername(String token) {
+        return getUsernameFromToken(token);
+    }
+
+    /**
+     * 从Token中提取角色
+     *
+     * @param token Token字符串
+     * @return 用户角色
+     */
+    public String extractRole(String token) {
+        Claims claims = parseToken(token);
+        return claims != null ? claims.get("role", String.class) : null;
+    }
+
+    /**
+     * 从Token中提取昵称
+     *
+     * @param token Token字符串
+     * @return 用户昵称
+     */
+    public String extractNickname(String token) {
+        Claims claims = parseToken(token);
+        return claims != null ? claims.get("nickname", String.class) : null;
     }
 
     /**

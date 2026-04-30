@@ -54,6 +54,25 @@ const providerPresets = {
             'glm-4.5-air'
         ]
     },
+    'longcat': {
+        apiUrl: 'https://api.longcat.chat/openai/v1/chat/completions',
+        authScheme: 'Bearer',
+        models: [
+            'LongCat-Flash-Chat',
+            'LongCat-Flash-Thinking-2601',
+            'LongCat-Flash-Omni-2603',
+            'LongCat-Flash-Lite',
+            'LongCat-2.0-Preview'
+        ]
+    },
+    'xiaomi': {
+        apiUrl: 'https://token-plan-sgp.xiaomimimo.com/v1/chat/completions',
+        authScheme: 'Bearer',
+        models: [
+            'mimo-v2.5-pro',
+            'mimo-v2.5'
+        ]
+    },
     'minimax': {
         apiUrl: 'https://api.minimax.chat/v1/chat/completions',
         authScheme: 'Bearer',

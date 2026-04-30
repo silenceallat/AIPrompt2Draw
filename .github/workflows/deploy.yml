@@ -13,11 +13,6 @@ permissions:
   pages: write
   id-token: write
 
-# 设置环境变量
-environment:
-  name: github-pages
-  url: ${{ steps.deployment.outputs.page_url }}
-
 # 构建设置
 jobs:
   build:

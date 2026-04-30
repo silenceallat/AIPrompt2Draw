@@ -254,17 +254,9 @@ class UIManager {
         }
     }
 
-    // HTML转义
+    // HTML转义（复用全局函数）
     escapeHtml(text) {
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;',
-            '\n': '<br>'
-        };
-        return text.replace(/[&<>"'\n]/g, m => map[m]);
+        return window.escapeHtml(text);
     }
 
     // 加载XML到DrawIO

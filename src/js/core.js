@@ -318,26 +318,6 @@ XML基本结构示例：
         }
     }
 
-    // 验证XML内容
-    validateXML(xml) {
-        if (!xml || typeof xml !== 'string') {
-            return { valid: false, error: 'XML内容为空' };
-        }
-
-        if (window.drawioGenerator) {
-            return window.drawioGenerator.validateXML(xml);
-        }
-
-        // 基本验证
-        const hasRoot = xml.includes('<mxGraphModel>') && xml.includes('</mxGraphModel>');
-        const hasRootElement = xml.includes('<root>') && xml.includes('</root>');
-
-        return {
-            valid: hasRoot && hasRootElement,
-            error: !hasRoot ? '缺少mxGraphModel根元素' : !hasRootElement ? '缺少root元素' : ''
-        };
-    }
-
     // 生成错误处理消息
     generateErrorMessage(error, context) {
         let message = '❌ 发生错误';

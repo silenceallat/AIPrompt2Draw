@@ -57,7 +57,6 @@ class DrawIOGenerator {
             placeholder.style.pointerEvents = 'auto';
         }
     }
-    }
 
     // 处理DrawIO消息
     handleDrawioMessage(evt) {

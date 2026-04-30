@@ -28,13 +28,35 @@ class DrawIOGenerator {
             console.log('📥 DrawIO iframe加载完成');
         });
 
+        this.drawioFrame.addEventListener('error', () => {
+            console.error('❌ DrawIO iframe加载失败');
+            this.showLoadError();
+        });
+
         // 设置超时检查
         setTimeout(() => {
             if (!this.drawioReady) {
-                console.warn('⚠️ Draw.io初始化超时，但这可能是正常的。用户仍可以使用复制功能。');
-                // 不要隐藏占位符，让用户知道DrawIO正在加载
+                console.warn('⚠️ Draw.io初始化超时');
+                this.showLoadError();
             }
-        }, 10000);
+        }, 15000);
+    }
+
+    // 显示加载失败提示
+    showLoadError() {
+        const placeholder = document.getElementById('drawioPlaceholder');
+        if (placeholder && placeholder.style.display !== 'none') {
+            placeholder.innerHTML = `
+                <div style="text-align: center; color: #999;">
+                    <div style="font-size: 32px; margin-bottom: 12px;">⏳</div>
+                    <div style="font-size: 15px; margin-bottom: 8px;">DrawIO 编辑器加载超时</div>
+                    <div style="font-size: 13px; color: #aaa; margin-bottom: 16px;">可能是网络问题，你仍可使用"复制XML"手动导入</div>
+                    <button onclick="window.drawioGenerator.reinitialize()" style="padding: 8px 20px; background: #0f0f0f; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px;">重新加载</button>
+                </div>
+            `;
+            placeholder.style.pointerEvents = 'auto';
+        }
+    }
     }
 
     // 处理DrawIO消息
@@ -248,6 +270,14 @@ class DrawIOGenerator {
     // 重新初始化DrawIO
     reinitialize() {
         this.drawioReady = false;
+
+        // 重置占位符
+        const placeholder = document.getElementById('drawioPlaceholder');
+        if (placeholder) {
+            placeholder.innerHTML = 'DrawIO 编辑器正在重新加载...';
+            placeholder.style.display = 'flex';
+            placeholder.style.pointerEvents = 'none';
+        }
 
         // 重新加载iframe
         if (this.drawioFrame) {

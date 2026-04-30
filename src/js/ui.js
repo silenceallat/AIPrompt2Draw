@@ -6,9 +6,23 @@
 class UIManager {
     constructor() {
         this.conversationHistory = [];
+        this.samplePrompts = null;
         this.initializeElements();
         this.bindEvents();
         this.initializeTheme();
+        this.loadSamplePrompts();
+    }
+
+    // 加载示例模板
+    async loadSamplePrompts() {
+        try {
+            const response = await fetch('assets/examples/sample-prompts.json');
+            if (response.ok) {
+                this.samplePrompts = await response.json();
+            }
+        } catch (e) {
+            console.warn('加载示例模板失败:', e);
+        }
     }
 
     // 初始化DOM元素引用
@@ -415,8 +429,37 @@ class UIManager {
 
     openTips() {
         if (this.tipsModal) {
+            this.renderExamplePrompts();
             this.tipsModal.classList.add('active');
         }
+    }
+
+    // 渲染分类示例模板
+    renderExamplePrompts() {
+        const container = document.getElementById('examplePromptsContainer');
+        if (!container) return;
+
+        if (!this.samplePrompts || !this.samplePrompts.categories) {
+            container.innerHTML = '<div class="example-prompts"><span class="example-prompt" onclick="uiManager.fillExample(\'创建一个电商订单处理流程图，包括下单、支付、发货、收货等环节\')">📦 订单流程</span><span class="example-prompt" onclick="uiManager.fillExample(\'生成一个用户登录验证流程图\')">🔐 登录流程</span><span class="example-prompt" onclick="uiManager.fillExample(\'画一个请假审批流程\')">📝 审批流程</span><span class="example-prompt" onclick="uiManager.fillExample(\'设计一个退款处理流程\')">💰 退款流程</span></div>';
+            return;
+        }
+
+        let html = '';
+        const icons = { '流程图': '📊', '架构图': '🏗️', 'UML图': '📐', '组织结构': '🏢' };
+        const categories = this.samplePrompts.categories;
+
+        for (const [category, items] of Object.entries(categories)) {
+            const icon = icons[category] || '📌';
+            html += `<div style="margin-top: 10px; margin-bottom: 4px; font-size: 13px; color: #666; font-weight: 600;">${icon} ${category}</div>`;
+            html += '<div class="example-prompts">';
+            for (const item of items) {
+                const escaped = item.prompt.replace(/'/g, "\\'").replace(/\n/g, ' ');
+                html += `<span class="example-prompt" onclick="uiManager.fillExample('${escaped}')" title="${item.difficulty}">${item.title}</span>`;
+            }
+            html += '</div>';
+        }
+
+        container.innerHTML = html;
     }
 
     closeTips() {

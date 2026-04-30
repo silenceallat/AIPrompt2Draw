@@ -172,12 +172,7 @@
                     <li>如自动加载失败，可点击"📋 复制XML"手动导入</li>
                 </ol>
                 <strong>✨ 示例模板</strong>
-                <div class="example-prompts">
-                    <span class="example-prompt" onclick="uiManager.fillExample('创建一个电商订单处理流程图，包括下单、支付、发货、收货等环节')">📦 订单流程</span>
-                    <span class="example-prompt" onclick="uiManager.fillExample('生成一个用户登录验证流程图')">🔐 登录流程</span>
-                    <span class="example-prompt" onclick="uiManager.fillExample('画一个请假审批流程')">📝 审批流程</span>
-                    <span class="example-prompt" onclick="uiManager.fillExample('设计一个退款处理流程')">💰 退款流程</span>
-                </div>
+                <div id="examplePromptsContainer"></div>
             </div>
             <div class="modal-footer" style="justify-content: center;">
                  <button class="btn btn-primary" id="tipsCloseBtn" onclick="uiManager.closeTips()">我明白了</button>

@@ -92,6 +92,7 @@ XML基本结构示例：
         const requestBody = {
             model: config.model,
             messages: messages,
+            max_tokens: config.maxTokens || 8192,
             temperature: 0.7,
             stream: false
         };
@@ -147,6 +148,7 @@ XML基本结构示例：
         const requestBody = {
             model: config.model,
             messages: messages,
+            max_tokens: config.maxTokens || 8192,
             temperature: 0.7,
             stream: true
         };
@@ -180,6 +182,7 @@ XML基本结构示例：
         const decoder = new TextDecoder();
         let fullContent = '';
         let finalUsage = null;
+        let streamBuffer = '';
 
         const messageId = 'msg_' + Date.now();
         window.uiManager.addStreamingMessage(messageId);
@@ -189,12 +192,14 @@ XML基本结构示例：
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
+                streamBuffer += decoder.decode(value, { stream: true });
+                const lines = streamBuffer.split('\n');
+                streamBuffer = lines.pop() || '';
 
                 for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const data = line.slice(6);
+                    const trimmedLine = line.trim();
+                    if (trimmedLine.startsWith('data: ')) {
+                        const data = trimmedLine.slice(6);
                         if (data === '[DONE]') continue;
 
                         try {

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![AIPrompt2Draw Logo](assets/images/Prompt2Draw-w.png)
+<img src="assets/images/Prompt2Draw-w.png" alt="AIPrompt2Draw Logo" width="96" height="96">
 
 **🚀 零安装、秒开的AI流程图生成器**
 

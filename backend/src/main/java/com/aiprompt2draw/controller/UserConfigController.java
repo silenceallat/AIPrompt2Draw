@@ -420,6 +420,8 @@ public class UserConfigController {
         models.put("claude", new String[]{"claude-3-haiku", "claude-3-sonnet", "claude-3-opus"});
         models.put("zhipu", new String[]{"glm-4", "glm-3-turbo"});
         models.put("siliconflow", new String[]{"qwen", "deepseek", "glm"});
+        models.put("longcat", new String[]{"LongCat-Flash-Chat", "LongCat-Flash-Thinking-2601", "LongCat-Flash-Omni-2603", "LongCat-Flash-Lite", "LongCat-2.0-Preview"});
+        models.put("xiaomi", new String[]{"mimo-v2.5-pro", "mimo-v2.5"});
         return models;
     }
 }

@@ -9,7 +9,7 @@
     "serve": "python -m http.server 8000 || npx serve . --listen 8000",
     "deploy": "echo 'Deploy src/ directory to your web server'",
     "lint": "echo 'Manual linting required for vanilla JS project'",
-    "test": "echo 'Manual testing required - open src/index.html in browser'"
+    "test": "node tests/token-config.test.js"
   },
   "keywords": [
     "ai",

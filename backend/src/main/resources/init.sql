@@ -64,7 +64,7 @@ CREATE TABLE `model_config` (
   `api_key` VARCHAR(512) NOT NULL COMMENT '厂商API Key(加密存储)',
   `api_url` VARCHAR(255) NOT NULL COMMENT 'API地址',
   `api_secret` VARCHAR(512) COMMENT 'API Secret(部分厂商需要)',
-  `max_tokens` INT DEFAULT 2000 COMMENT '最大Token数',
+  `max_tokens` INT DEFAULT 8192 COMMENT '最大Token数',
   `temperature` DECIMAL(3, 2) DEFAULT 0.7 COMMENT '温度参数',
   `priority` INT NOT NULL DEFAULT 0 COMMENT '优先级(数字越大优先级越高)',
   `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态: 0-禁用 1-启用',
@@ -127,4 +127,4 @@ CREATE TABLE `user_config` (
 
 -- 插入OpenAI模型配置示例 (需要替换真实的API Key)
 INSERT INTO `model_config` (`model_type`, `model_name`, `api_key`, `api_url`, `max_tokens`, `temperature`, `priority`, `status`, `cost_per_1k_prompt_tokens`, `cost_per_1k_completion_tokens`, `remark`)
-VALUES ('openai', 'gpt-4', 'your-openai-api-key-here', 'https://api.openai.com/v1/chat/completions', 2000, 0.7, 10, 0, 0.03, 0.06, 'OpenAI GPT-4模型(需配置真实API Key)');
+VALUES ('openai', 'gpt-4', 'your-openai-api-key-here', 'https://api.openai.com/v1/chat/completions', 8192, 0.7, 10, 0, 0.03, 0.06, 'OpenAI GPT-4模型(需配置真实API Key)');

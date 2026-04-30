@@ -1,5 +1,6 @@
 package com.aiprompt2draw.dto;
 
+import com.aiprompt2draw.constant.AIModelConstant;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import lombok.Data;
@@ -41,7 +42,7 @@ public class UserGenerateRequest {
     /**
      * 最大token数
      */
-    private Integer maxTokens = 2000;
+    private Integer maxTokens = AIModelConstant.DEFAULT_MAX_TOKENS;
 
     /**
      * 是否发送对话历史

@@ -5,6 +5,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.aiprompt2draw.adapter.AIModelAdapter;
+import com.aiprompt2draw.constant.AIModelConstant;
 import com.aiprompt2draw.constant.FlowchartPromptTemplate;
 import com.aiprompt2draw.dto.AIResponse;
 import com.aiprompt2draw.entity.ModelConfig;
@@ -105,7 +106,9 @@ public class OpenAIAdapter implements AIModelAdapter {
         userMessage.set("content", FlowchartPromptTemplate.buildUserPrompt(prompt));
 
         requestBody.set("messages", new Object[]{systemMessage, userMessage});
-        requestBody.set("max_tokens", config.getMaxTokens());
+        requestBody.set("max_tokens", config.getMaxTokens() == null
+                ? AIModelConstant.DEFAULT_MAX_TOKENS
+                : config.getMaxTokens());
         requestBody.set("temperature", config.getTemperature());
 
         return requestBody;

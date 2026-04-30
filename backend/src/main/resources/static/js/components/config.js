@@ -81,6 +81,8 @@ const providerPresets = {
 };
 
 // 配置管理类
+const DEFAULT_MAX_TOKENS = 8192;
+
 class ConfigManager {
     constructor() {
         this.config = this.loadConfig();
@@ -88,6 +90,8 @@ class ConfigManager {
 
     // 从localStorage加载配置
     loadConfig() {
+        const savedMaxTokens = parseInt(localStorage.getItem('config_maxTokens'), 10);
+
         return {
             apiKeys: JSON.parse(localStorage.getItem('config_apiKeys')) || {},
             apiUrl: localStorage.getItem('config_apiUrl') || 'https://api.siliconflow.cn/v1/chat/completions',
@@ -95,7 +99,8 @@ class ConfigManager {
             stream: localStorage.getItem('config_stream') !== 'false',
             provider: localStorage.getItem('config_provider') || 'siliconflow',
             authScheme: localStorage.getItem('config_authScheme') || 'Bearer',
-            sendHistory: localStorage.getItem('config_sendHistory') === 'true'
+            sendHistory: localStorage.getItem('config_sendHistory') === 'true',
+            maxTokens: savedMaxTokens >= DEFAULT_MAX_TOKENS ? savedMaxTokens : DEFAULT_MAX_TOKENS
         };
     }
 
@@ -110,6 +115,7 @@ class ConfigManager {
         localStorage.setItem('config_provider', dataToSave.provider);
         localStorage.setItem('config_authScheme', dataToSave.authScheme);
         localStorage.setItem('config_sendHistory', dataToSave.sendHistory);
+        localStorage.setItem('config_maxTokens', dataToSave.maxTokens || DEFAULT_MAX_TOKENS);
     }
 
     // 更新配置项
@@ -166,7 +172,8 @@ class ConfigManager {
             stream: true,
             provider: 'siliconflow',
             authScheme: 'Bearer',
-            sendHistory: false
+            sendHistory: false,
+            maxTokens: DEFAULT_MAX_TOKENS
         };
         this.saveConfig();
     }

@@ -89,7 +89,7 @@ class AIConfigService {
             authScheme: 'Bearer',
             sendHistory: true,
             temperature: 0.7,
-            maxTokens: 2000
+            maxTokens: 8192
         };
 
         // 当前配置
@@ -118,6 +118,9 @@ class AIConfigService {
             const savedConfig = this.getStorageItem('ai-config');
             if (savedConfig) {
                 this.config = { ...this.defaultConfig, ...savedConfig };
+                if (!this.config.maxTokens || this.config.maxTokens < this.defaultConfig.maxTokens) {
+                    this.config.maxTokens = this.defaultConfig.maxTokens;
+                }
                 this.logDebug('从本地存储加载配置', { provider: this.config.provider });
             }
         } catch (error) {
@@ -433,7 +436,7 @@ class AIConfigService {
             }
 
             if (typeof config.maxTokens === 'number' && config.maxTokens > 0) {
-                newConfig.maxTokens = config.maxTokens;
+                newConfig.maxTokens = Math.max(config.maxTokens, this.defaultConfig.maxTokens);
             }
 
             // 应用新配置

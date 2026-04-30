@@ -69,6 +69,20 @@ XML基本结构示例：
         return authScheme === 'Direct' ? apiKey : `Bearer ${apiKey}`;
     }
 
+    // 构建请求头
+    buildHeaders(config, apiKey) {
+        const headers = {
+            'Authorization': this.buildAuthHeader(apiKey, config.authScheme),
+            'Content-Type': 'application/json'
+        };
+
+        if (config.provider && config.provider.startsWith('xiaomi')) {
+            headers['api-key'] = apiKey;
+        }
+
+        return headers;
+    }
+
     // 构建发送消息体
     buildMessages(userMessage, includeHistory) {
         const messages = [{ role: 'system', content: this.systemPrompt }];
@@ -86,7 +100,6 @@ XML基本结构示例：
     // API调用（非流式）
     async callAPI(userMessage, apiKey) {
         const config = window.configManager.getConfig();
-        const authHeader = this.buildAuthHeader(apiKey, config.authScheme);
         const messages = this.buildMessages(userMessage, config.sendHistory);
 
         const requestBody = {
@@ -100,10 +113,7 @@ XML基本结构示例：
         try {
             const response = await fetch(config.apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Authorization': authHeader,
-                    'Content-Type': 'application/json'
-                },
+                headers: this.buildHeaders(config, apiKey),
                 body: JSON.stringify(requestBody)
             });
 
@@ -142,7 +152,6 @@ XML基本结构示例：
     // 流式API调用
     async callAPIStreaming(userMessage, apiKey) {
         const config = window.configManager.getConfig();
-        const authHeader = this.buildAuthHeader(apiKey, config.authScheme);
         const messages = this.buildMessages(userMessage, config.sendHistory);
 
         const requestBody = {
@@ -156,10 +165,7 @@ XML基本结构示例：
         try {
             const response = await fetch(config.apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Authorization': authHeader,
-                    'Content-Type': 'application/json'
-                },
+                headers: this.buildHeaders(config, apiKey),
                 body: JSON.stringify(requestBody)
             });
 
@@ -241,7 +247,15 @@ XML基本结构示例：
     // 测试API连接
     async testConnection(provider, apiKey, apiUrl, model) {
         try {
-            const authHeader = this.buildAuthHeader(apiKey, window.providerPresets[provider].authScheme);
+            const preset = window.providerPresets[provider];
+            const authHeader = this.buildAuthHeader(apiKey, preset.authScheme);
+            const headers = {
+                'Authorization': authHeader,
+                'Content-Type': 'application/json'
+            };
+            if (provider && provider.startsWith('xiaomi')) {
+                headers['api-key'] = apiKey;
+            }
 
             const testMessages = [
                 { role: 'system', content: '你是一个测试助手。' },
@@ -250,10 +264,7 @@ XML基本结构示例：
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Authorization': authHeader,
-                    'Content-Type': 'application/json'
-                },
+                headers: headers,
                 body: JSON.stringify({
                     model: model,
                     messages: testMessages,
@@ -355,13 +366,22 @@ XML基本结构示例：
         if (error.message.includes('401') || error.message.includes('Unauthorized')) {
             message += '\n💡 建议：请检查API Key是否正确';
             const provider = window.configManager?.getConfig()?.provider;
+            const apiUrl = window.configManager?.getConfig()?.apiUrl;
+            if (provider || apiUrl) {
+                message += `\n当前配置：provider=${provider || 'unknown'}，apiUrl=${apiUrl || 'unknown'}`;
+            }
             if (provider && provider.startsWith('xiaomi-token')) {
                 message += '；小米 Token Plan 还需要确认选择了正确区域入口，欧洲/AMS 请选择 Token Plan (AMS)，新加坡/SGP 请选择 Token Plan (SGP)。';
             }
         } else if (error.message.includes('429') || error.message.includes('rate')) {
             message += '\n💡 建议：API调用频率过高，请稍后重试';
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
-            message += '\n💡 建议：如果你在 GitHub Pages 使用，可能是服务商未允许浏览器跨域访问。LongCat 这类接口需要后端代理或服务商开启 CORS，纯前端无法绕过。';
+            const protocol = window.location?.protocol;
+            if (protocol === 'file:') {
+                message += '\n💡 建议：当前是 file:// 直接打开，浏览器会以 null origin 发起跨域请求，很多模型接口会拒绝。请改用本地 HTTP 服务打开，例如 npm run dev。';
+            } else {
+                message += '\n💡 建议：当前模型服务商可能未允许浏览器跨域访问。LongCat 这类接口需要后端代理或服务商开启 CORS，纯前端无法绕过。';
+            }
         } else if (error.message.includes('model')) {
             message += '\n💡 建议：请检查模型名称是否正确';
         }

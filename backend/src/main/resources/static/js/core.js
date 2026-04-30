@@ -58,7 +58,7 @@ XML基本结构示例：
             }
         } catch (error) {
             console.error('API调用失败:', error);
-            window.uiManager.addMessage('system', '❌ 错误：' + error.message);
+            window.uiManager.addMessage('system', this.generateErrorMessage(error));
         } finally {
             window.uiManager.setSendButtonState(false);
         }
@@ -354,10 +354,14 @@ XML基本结构示例：
         // 根据错误类型提供建议
         if (error.message.includes('401') || error.message.includes('Unauthorized')) {
             message += '\n💡 建议：请检查API Key是否正确';
+            const provider = window.configManager?.getConfig()?.provider;
+            if (provider && provider.startsWith('xiaomi-token')) {
+                message += '；小米 Token Plan 还需要确认选择了正确区域入口，欧洲/AMS 请选择 Token Plan (AMS)，新加坡/SGP 请选择 Token Plan (SGP)。';
+            }
         } else if (error.message.includes('429') || error.message.includes('rate')) {
             message += '\n💡 建议：API调用频率过高，请稍后重试';
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
-            message += '\n💡 建议：请检查网络连接';
+            message += '\n💡 建议：如果你在 GitHub Pages 使用，可能是服务商未允许浏览器跨域访问。LongCat 这类接口需要后端代理或服务商开启 CORS，纯前端无法绕过。';
         } else if (error.message.includes('model')) {
             message += '\n💡 建议：请检查模型名称是否正确';
         }

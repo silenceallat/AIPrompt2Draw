@@ -68,7 +68,23 @@ class AIConfigService {
                 ]
             },
             'xiaomi': {
+                apiUrl: 'https://api.xiaomimimo.com/v1/chat/completions',
+                authScheme: 'Bearer',
+                models: [
+                    'mimo-v2.5-pro',
+                    'mimo-v2.5'
+                ]
+            },
+            'xiaomi-token-sgp': {
                 apiUrl: 'https://token-plan-sgp.xiaomimimo.com/v1/chat/completions',
+                authScheme: 'Bearer',
+                models: [
+                    'mimo-v2.5-pro',
+                    'mimo-v2.5'
+                ]
+            },
+            'xiaomi-token-ams': {
+                apiUrl: 'https://token-plan-ams.xiaomimimo.com/v1/chat/completions',
                 authScheme: 'Bearer',
                 models: [
                     'mimo-v2.5-pro',

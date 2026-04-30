@@ -59,6 +59,9 @@ class MainComponent extends BaseComponent {
         // 初始化设置
         this.initializeSettings();
 
+        // 初始化主题
+        this.initializeTheme();
+
         // 更新API状态
         this.updateApiStatus();
 
@@ -228,7 +231,7 @@ class MainComponent extends BaseComponent {
                             <button class="settings-btn" onclick="window.mainComponent.logout()" title="退出登录">
                                 🚪 退出
                             </button>
-                            <button class="theme-toggle-btn" id="themeToggleBtn" onclick="window.app?.toggleTheme()" title="切换主题">🌙</button>
+                            <button class="theme-toggle-btn" id="themeToggleBtn" onclick="window.mainComponent.toggleTheme()" title="切换主题">☀️</button>
                         </div>
                     </div>
                     <div class="drawio-container">
@@ -312,6 +315,8 @@ class MainComponent extends BaseComponent {
                                 <option value="zhipu">智谱 GLM (Zhipu)</option>
                                 <option value="longcat">LongCat</option>
                                 <option value="xiaomi">小米 MiMo</option>
+                                <option value="xiaomi-token-sgp">小米 MiMo Token Plan (SGP)</option>
+                                <option value="xiaomi-token-ams">小米 MiMo Token Plan (AMS)</option>
                                 <option value="minimax">MiniMax</option>
                                 <option value="modelscope">魔搭 (ModelScope)</option>
                                 <option value="custom">自定义</option>
@@ -645,6 +650,36 @@ class MainComponent extends BaseComponent {
             if (clearApiKey && apiKeyInput) {
                 apiKeyInput.value = '';
             }
+        }
+    }
+
+    /**
+     * 切换明暗主题
+     */
+    toggleTheme() {
+        const isDark = document.body.classList.contains('dark-mode');
+        const nextTheme = isDark ? 'light' : 'dark';
+        document.body.classList.toggle('dark-mode', nextTheme === 'dark');
+        document.documentElement.setAttribute('data-theme', nextTheme);
+        localStorage.setItem('theme', nextTheme);
+
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (themeToggleBtn) {
+            themeToggleBtn.textContent = nextTheme === 'dark' ? '🌙' : '☀️';
+        }
+    }
+
+    /**
+     * 初始化明暗主题
+     */
+    initializeTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.classList.toggle('dark-mode', savedTheme === 'dark');
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (themeToggleBtn) {
+            themeToggleBtn.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
         }
     }
 

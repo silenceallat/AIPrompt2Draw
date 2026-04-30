@@ -57,7 +57,7 @@ class UIManager {
         }
 
         // 主题切换
-        if (this.themeToggleBtn) {
+        if (this.themeToggleBtn && !this.themeToggleBtn.getAttribute('onclick')) {
             this.themeToggleBtn.addEventListener('click', this.toggleTheme.bind(this));
         }
 

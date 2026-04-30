@@ -422,6 +422,8 @@ public class UserConfigController {
         models.put("siliconflow", new String[]{"qwen", "deepseek", "glm"});
         models.put("longcat", new String[]{"LongCat-Flash-Chat", "LongCat-Flash-Thinking-2601", "LongCat-Flash-Omni-2603", "LongCat-Flash-Lite", "LongCat-2.0-Preview"});
         models.put("xiaomi", new String[]{"mimo-v2.5-pro", "mimo-v2.5"});
+        models.put("xiaomi-token-sgp", new String[]{"mimo-v2.5-pro", "mimo-v2.5"});
+        models.put("xiaomi-token-ams", new String[]{"mimo-v2.5-pro", "mimo-v2.5"});
         return models;
     }
 }

@@ -130,8 +130,13 @@
 
                 <div class="form-group">
                     <label>模型选择</label>
-                    <select id="modelSelect">
-                    </select>
+                    <div id="modelSelectGroup">
+                        <select id="modelSelect">
+                        </select>
+                    </div>
+                    <div id="customModelGroup" style="display:none;">
+                        <input type="text" id="customModelInput" placeholder="输入模型名称，如 gpt-4o">
+                    </div>
                     <small>选择适合的AI模型生成流程图</small>
                 </div>
 
@@ -146,6 +151,11 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+                </div>
+
+                <div class="form-group" id="testConnectionGroup" style="text-align: center;">
+                    <button class="btn btn-secondary" onclick="testConnection()" id="testConnBtn" style="width: 100%;">🔗 测试连接</button>
+                    <small id="testConnResult"></small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -246,8 +256,18 @@
                 const provider = document.getElementById('providerSelect').value;
                 const apiKey = document.getElementById('apiKeyInput').value.trim();
                 const apiUrl = document.getElementById('apiUrlInput').value.trim();
-                const model = document.getElementById('modelSelect').value;
                 const stream = document.getElementById('streamToggle').checked;
+
+                let model;
+                if (provider === 'custom') {
+                    model = document.getElementById('customModelInput').value.trim();
+                    if (!model) {
+                        alert('请输入模型名称');
+                        return;
+                    }
+                } else {
+                    model = document.getElementById('modelSelect').value;
+                }
 
                 if (!apiKey) {
                     alert('请输入当前服务商的 API Key');
@@ -271,6 +291,41 @@
             } catch (error) {
                 console.error('保存设置失败:', error);
                 alert('保存配置失败: ' + error.message);
+            }
+        }
+
+        // 测试连接
+        async function testConnection() {
+            const provider = document.getElementById('providerSelect').value;
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const apiUrl = document.getElementById('apiUrlInput').value.trim();
+            const model = provider === 'custom'
+                ? document.getElementById('customModelInput').value.trim()
+                : document.getElementById('modelSelect').value;
+            const resultEl = document.getElementById('testConnResult');
+            const btn = document.getElementById('testConnBtn');
+
+            if (!apiKey) {
+                resultEl.textContent = '⚠️ 请先输入 API Key';
+                resultEl.style.color = '#f57f17';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ 测试中...';
+            resultEl.textContent = '';
+
+            const result = await coreEngine.testConnection(provider, apiKey, apiUrl, model);
+
+            btn.disabled = false;
+            btn.textContent = '🔗 测试连接';
+
+            if (result.success) {
+                resultEl.textContent = '✅ 连接成功: ' + result.response;
+                resultEl.style.color = '#2e7d32';
+            } else {
+                resultEl.textContent = '❌ 连接失败: ' + result.error;
+                resultEl.style.color = '#c62828';
             }
         }
 

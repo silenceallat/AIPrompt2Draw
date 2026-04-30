@@ -503,8 +503,13 @@ class UIManager {
             apiUrlInput.value = config.apiUrl;
         }
 
-        if (modelSelect) {
+        if (modelSelect && config.provider !== 'custom') {
             modelSelect.value = config.model;
+        }
+
+        const customModelInput = document.getElementById('customModelInput');
+        if (customModelInput && config.provider === 'custom') {
+            customModelInput.value = config.model || '';
         }
 
         if (streamToggle) {
@@ -520,8 +525,21 @@ class UIManager {
         const modelSelect = document.getElementById('modelSelect');
         const apiKeyInput = document.getElementById('apiKeyInput');
         const config = window.configManager.getConfig();
+        const modelSelectGroup = document.getElementById('modelSelectGroup');
+        const customModelGroup = document.getElementById('customModelGroup');
+        const customModelInput = document.getElementById('customModelInput');
 
         if (!preset) return;
+
+        // 切换模型输入方式
+        if (provider === 'custom') {
+            if (modelSelectGroup) modelSelectGroup.style.display = 'none';
+            if (customModelGroup) customModelGroup.style.display = 'block';
+            if (customModelInput) customModelInput.value = config.model || '';
+        } else {
+            if (modelSelectGroup) modelSelectGroup.style.display = 'block';
+            if (customModelGroup) customModelGroup.style.display = 'none';
+        }
 
         // 填充API地址
         if (apiUrlInput) {
@@ -534,20 +552,18 @@ class UIManager {
             apiKeyInput.value = config.apiKeys[provider] || '';
         }
 
-        // 填充模型
+        // 填充模型下拉
         if (modelSelect) {
             modelSelect.innerHTML = '';
 
-            if (provider === 'custom') {
-                if (config.model) {
-                    modelSelect.add(new Option(config.model, config.model));
-                }
-            } else {
+            if (provider !== 'custom') {
                 preset.models.forEach(model => {
                     modelSelect.add(new Option(model, model));
                 });
                 if (resetModel) {
                     modelSelect.selectedIndex = 0;
+                } else if (config.model) {
+                    modelSelect.value = config.model;
                 }
             }
         }

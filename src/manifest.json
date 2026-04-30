@@ -2,7 +2,7 @@
   "name": "AIPrompt2Draw - AI流程图生成器",
   "short_name": "Prompt2Draw",
   "description": "零安装、秒开的AI流程图生成器，通过自然语言描述快速生成专业图表",
-  "start_url": "/index.html",
+  "start_url": "/src/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0f0f0f",
@@ -22,48 +22,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "桌面版界面"
-    },
-    {
-      "src": "/screenshots/mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "移动端界面"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "新建流程图",
-      "short_name": "新建",
-      "description": "创建一个新的流程图",
-      "url": "/index.html?action=new",
-      "icons": [
-        {
-          "src": "/icons/new.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "配置API",
-      "short_name": "设置",
-      "description": "配置AI服务API",
-      "url": "/index.html?action=settings",
-      "icons": [
-        {
-          "src": "/icons/settings.png",
-          "sizes": "96x96"
-        }
-      ]
     }
   ],
   "related_applications": [],
